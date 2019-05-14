@@ -21,10 +21,24 @@ class Config():
 
 
 
+
+'''
+(1) Start from list of eprint ids
+(2) Pull metadata or read files from data dir
+(3) Parse metadata file 
+(4) Transform metadata
+(5) Write to SAF package
+'''
+
+
+
+
 if __name__ == "__main__":
     
     e = Eprint(10)
     print(e, e.id)
+    e.parse_dc_file('data/export/minorityhealth-archive-3071.txt')
+    print(e.__dict__)
 
     saf = SafPackage('foobar/')
     print(saf.packagedir)
