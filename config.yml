@@ -1,0 +1,11 @@
+# Eprint server configuration
+
+host:       "http://health-equity.lib.umd.edu/"
+archive:    "minorityhealth-archive"
+dc_export:  "cgi/export/{0}/DC/{1}-{0}.txt"
+
+
+# Dspace server configuration
+
+
+# Local storage configuration
