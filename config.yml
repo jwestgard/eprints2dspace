@@ -7,3 +7,4 @@ dc_export_path:  "cgi/export/{0}/DC/{1}-{0}.txt"
 
 
 # Local storage configuration
+export_dir: "data/export/"
