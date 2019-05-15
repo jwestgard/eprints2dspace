@@ -26,9 +26,13 @@ def main():
     config = Config('config.yml')
 
     for id in range(3080, 3100):
+    
         eprint = Eprint(id, config)
         eprint.fetch_metadata()
         eprint.display_metadata()
+        
+        saf = SafPackage(config)
+        saf.write(eprint)
 
 
 
