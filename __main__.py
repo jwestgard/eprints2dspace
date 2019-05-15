@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from eprints import Eprint, Server
+from eprints import Eprint
 from dspace import SafPackage
 import sys
 import yaml
@@ -20,19 +20,21 @@ class Config():
         return self._config.get(property_name, None)
 
 
-def fetch_data(id, config):
-    local_dir = config.get_property('export_dir')
-    print(local_dir)
 
+def main():
 
+    config = Config('config.yml')
 
+    for id in range(3080, 3100):
+        eprint = Eprint(id, config)
+        eprint.fetch_metadata()
+        eprint.display_metadata()
 
 
 
 if __name__ == "__main__":
-
-    config = Config('config.yml')
-
+    main()
+        
 
     '''
     (1) Start from list of eprint ids
@@ -41,16 +43,3 @@ if __name__ == "__main__":
     (4) Transform metadata
     (5) Write to SAF package
     '''
-    
-    e = Eprint(10)
-    # print(e, e.id)
-    e.parse_dc_file('data/export/minorityhealth-archive-3090.txt')
-    e.display_metadata()
-    
-
-    saf = SafPackage('foobar/')
-    # print(saf.packagedir)
-
-    data = fetch_data('3090', config)
-    server = Server(config)
-    server.get('3090')
