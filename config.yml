@@ -1,11 +1,15 @@
-# Eprint server configuration
-eprints_host:    "http://health-equity.lib.umd.edu/"
-eprints_archive: "minorityhealth-archive"
-dc_export_path:  "cgi/export/{0}/DC/{1}-{0}.txt"
+# Eprints server configuration
+HOST:           "http://health-equity.lib.umd.edu"
+QUERY_TEMPLATE: "http://health-equity.lib.umd.edu/cgi/export/{0}/DC/{1}-{0}.txt"
+ARCHIVE_NAME:   "minorityhealth-archive"
+EXPORT_RANGE:   "1-5000"
 
 # Dspace server configuration
-
+DESTINATION:    "http://drum.lib.umd.edu"
+SAF_PACKAGE:    "data/saf"
 
 # Local storage configuration
-export_dir: "data/export/"
-mapfile: "mapfile.csv"
+MAPFILE:        "mapfile.csv"
+LOG_DIR:        "logs"
+EPRINT_ERRORS:  "eprint_errors.csv"
+EPRINT_EXPORT:  "data/export/"
