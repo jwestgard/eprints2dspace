@@ -10,15 +10,7 @@ class Eprint():
     def __init__(self, id):
         self.id = str(id)
         self.filename = "{}.txt".format(self.id)
-        self.title = None
-        self.creator = [] 
-        self.subject = []
-        self.description = None
-        self.date = None
-        self.type = []
-        self.format = None
-        self.identifier = []
-        self.relation = []
+
 
     def parse(self, txt):
         '''Parse dublin-core keys and values into attributes on the python object'''
@@ -32,20 +24,29 @@ class Eprint():
             attrib_list.append(value)
             setattr(self, key, attrib_list)
 
-    def check_links(self, sitehost):
+
+    def check_links(self, host):
         if hasattr(self, 'relation'):
             for link in self.relation:
-                if link.startswith(sitehost):
+                if link.startswith(host):
                     self.link_loc = link
                 else:
                     self.link_ext = link
         if self.link_ext is not None:
             requests.get(self.link_ext)
 
-    def fetch_binaries(self):
-        for relation in self.
+
+    def fetch_binaries(self, host):
+        for rel in self.relation:
+            if rel.startswith(host):
+                print(rel)
+
 
     def display_metadata(self):
         for k, v in self.__dict__.items():
             print("{} => {}".format(k, v))
+
+
+    def to_csv(self):
+        return {k: ' || '.join(v) for k, v in self.__dict__.items()}
 

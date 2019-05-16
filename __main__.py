@@ -28,12 +28,15 @@ class Batch():
     '''Class for managing a particular migration batch'''
 
     def __init__(self, config):
-        self.query_template = config.get_property('QUERY_TEMPLATE')
-        self.archive_name   = config.get_property('ARCHIVE_NAME')
-        self.export_range   = config.get_property('EXPORT_RANGE')
-        self.destination    = config.get_property('DESTINATION')
-        self.local_dir      = config.get_property('EPRINT_EXPORT')
+        self.host           = config.get_property('EPRINTS_HOST')
+        self.path           = config.get_property('EPRINTS_QUERY')
+        self.query_template = os.path.join(self.host, self.path)
+        self.archive_name   = config.get_property('EPRINTS_ARCHIVE')
+        self.export_range   = config.get_property('EPRINTS_RANGE')
+        self.local_cache    = config.get_property('EPRINTS_LOCAL')
         self.mapfile        = config.get_property('MAPFILE')
+        self.errfile        = config.get_property('ERRFILE')
+        self.logdir         = config.get_property('LOG_DIR')
         self.ids            = self.get_id_range()
         self.cursor         = 0
 
@@ -60,16 +63,22 @@ def main():
 
     config = Config('config.yml')
     batch = Batch(config)
+    errfile = os.path.join(batch.logdir, batch.errfile)
+    mapfile = os.path.join(batch.logdir, batch.mapfile)
+    fieldnames = ['id', 'title', 'creator', 'date', 'relation', 'filename',
+                  'subject', 'type', 'format', 'identifier', 'description', 'publisher',
+                  'contributor']
 
-    with open('data/errors.csv', 'w') as errfile, open('data/active.csv', 'w') as actfile:
-        errors = csv.writer(errfile)
-        active = csv.writer(actfile)
+    with open(errfile, 'w') as errhandle, open(mapfile, 'w') as maphandle:
+        errlog = csv.writer(errhandle)
+        maplog = csv.DictWriter(maphandle, fieldnames=fieldnames)
+        maplog.writeheader()
         
         '''(2) Pull metadata or read files from data dir'''
         
         for id in batch:
             eprint = Eprint(id)
-            local_path = os.path.join(batch.local_dir, eprint.filename)
+            local_path = os.path.join(batch.local_cache, eprint.filename)
             
             # check for a cached metadata file, pull from server if not found
             if not os.path.isfile(local_path):
@@ -79,14 +88,14 @@ def main():
                     with open(local_path, 'w') as handle:
                         handle.write(response.text)
                 else:
-                    errors.writerow([id, response.status_code, query])
+                    errlog.writerow([id, response.status_code, query])
                     continue
                 
             '''(3) Parse metadata file'''
             
             with open(local_path, 'r') as handle:
                 eprint.parse(handle.read())
-                active.writerow([eprint.id, eprint.title, eprint.relation])
+                maplog.writerow(eprint.to_csv())
 
 
     '''(4) Transform metadata'''
