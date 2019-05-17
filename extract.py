@@ -3,54 +3,52 @@
 import os
 import requests
 
-class Batch:
+class Batch():
 
     '''Class for iterating over a set of resources to be extracted'''
 
-    def __init__(self, config):
-        self.host           = config['EPRINTS_HOST']
-        self.path           = config['EPRINTS_QUERY']
-        self.query_template = os.path.join(self.host, self.path)
-        self.archive_name   = config['EPRINTS_ARCHIVE']
-        self.export_range   = config['EPRINTS_RANGE']
-        self.local_cache    = config['EPRINTS_LOCAL']
-        self.mapfile        = config['MAPFILE']
-        self.errfile        = config['ERRFILE']
-        self.logdir         = config['LOG_DIR']
-        self.ids            = self.get_id_range()
-        self.cursor         = 0
-        self.dspace_host    = config['DSPACE_HOST']
-        self.dspace_saf     = config['DSPACE_SAF_ROOT']
-        self.dspace_handle  = config['DSPACE_HANDLE']
+    def __init__(self, batch_config, source_config):
+        self.__dict__.update(**batch_config)
+        self.source = EprintsServer(**source_config)
+        self.first_id, self.last_id = self.parse_id_range()
+        self.max_id_length = len(str(self.last_id))
+        self.items = [EprintsResource(i) for i in range(self.first_id, self.last_id + 1)]
+        self.cursor = 0
 
-    def get_id_range(self):
-        self.first, self.last = self.export_range.split('-')
-        return [id for id in range(int(self.first), int(self.last)+1)]
+    def parse_id_range(self):
+        try:
+            first, last = self.id_range.split('-')
+            return (int(first), int(last))
+        except IndexError:
+            return (int(first), int(first))
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        if self.cursor < len(self.ids):
-            id = self.ids[self.cursor]
+        try:
+            eprint = self.items[self.cursor]
             self.cursor += 1
-            return id
-        else:
-            #self.logger.info('Processing complete!')
+            return eprint
+        except IndexError:
             raise StopIteration()
 
 
-class EprintServer():
-    
+class EprintsServer():
 
-class EprintResource():
+    '''Python representation of a Eprints server'''
+
+    def __init__(self, **config):
+        self.__dict__.update(config)
+
+
+class EprintsResource():
 
     '''Python representation of a single resource from an Eprints repository'''
 
     def __init__(self, id):
         self.id = str(id)
         self.filename = "{}.txt".format(self.id)
-
 
     def parse(self, txt):
         '''Parse dublin-core keys and values into attributes on the python object'''
@@ -64,7 +62,6 @@ class EprintResource():
             attrib_list.append(value)
             setattr(self, key, attrib_list)
 
-
     def check_links(self, host):
         if hasattr(self, 'relation'):
             for link in self.relation:
@@ -75,17 +72,14 @@ class EprintResource():
         if self.link_ext is not None:
             requests.get(self.link_ext)
 
-
     def fetch_binaries(self, host):
         for rel in self.relation:
             if rel.startswith(host):
                 print(rel)
 
-
     def display_metadata(self):
         for k, v in self.__dict__.items():
             print("{} => {}".format(k, v))
-
 
     def to_csv(self):
         return {k: ' || '.join(v) for k, v in self.__dict__.items()}
