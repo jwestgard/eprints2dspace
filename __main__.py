@@ -2,47 +2,41 @@
 
 import argparse
 import csv
-from eprints import Eprint
-from dspace import SafPackage
+import logging
 import os
 import requests
 import sys
 import yaml
 
-
-class Config():
-
-    '''Project configuration class'''
-
-    def __init__(self, path):
-        with open(path) as configfile:
-            self._config = yaml.safe_load(configfile)
-    
-    def get_property(self, property_name):
-        '''Return the value of key in the yaml or None if not found''' 
-        return self._config.get(property_name, None)
-
+from extract import EprintServer
+from extract import EprintResource
+from load import SafPackage
+from load import SafResource
+from transform import *
 
 class Batch():
 
     '''Class for managing a particular migration batch'''
 
     def __init__(self, config):
-        self.host           = config.get_property('EPRINTS_HOST')
-        self.path           = config.get_property('EPRINTS_QUERY')
+        self.host           = config['EPRINTS_HOST']
+        self.path           = config['EPRINTS_QUERY']
         self.query_template = os.path.join(self.host, self.path)
-        self.archive_name   = config.get_property('EPRINTS_ARCHIVE')
-        self.export_range   = config.get_property('EPRINTS_RANGE')
-        self.local_cache    = config.get_property('EPRINTS_LOCAL')
-        self.mapfile        = config.get_property('MAPFILE')
-        self.errfile        = config.get_property('ERRFILE')
-        self.logdir         = config.get_property('LOG_DIR')
+        self.archive_name   = config['EPRINTS_ARCHIVE']
+        self.export_range   = config['EPRINTS_RANGE']
+        self.local_cache    = config['EPRINTS_LOCAL']
+        self.mapfile        = config['MAPFILE']
+        self.errfile        = config['ERRFILE']
+        self.logdir         = config['LOG_DIR']
         self.ids            = self.get_id_range()
         self.cursor         = 0
+        self.dspace_host    = config['DSPACE_HOST']
+        self.dspace_saf     = config['DSPACE_SAF_ROOT']
+        self.dspace_handle  = config['DSPACE_HANDLE']
 
     def get_id_range(self):
-        begin, end = self.export_range.split('-')
-        return [id for id in range(int(begin), int(end)+1)]
+        self.first, self.last = self.export_range.split('-')
+        return [id for id in range(int(self.first), int(self.last)+1)]
 
     def __iter__(self):
         return self
@@ -61,7 +55,7 @@ def main():
 
     '''(1) Start from list of eprint ids'''
 
-    config = Config('config.yml')
+    config = yaml.safe_load('config.yml')
     batch = Batch(config)
     errfile = os.path.join(batch.logdir, batch.errfile)
     mapfile = os.path.join(batch.logdir, batch.mapfile)
@@ -97,8 +91,16 @@ def main():
                 eprint.parse(handle.read())
                 maplog.writerow(eprint.to_csv())
 
+            '''(4) Transform metadata'''
 
-    '''(4) Transform metadata'''
+            package = SafPackage(batch)
+            resource = SafResource(eprint, package)
+            
+            print(resource.path)
+            resource.map_source_metadata()
+
+
+
     '''(5) Write to SAF package'''
 
 

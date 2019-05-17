@@ -15,71 +15,98 @@ class SafPackage():
 
     '''Class for building Dspace Simple Archive Format packages'''
 
-    def __init__(self, packagedir):
-        self.packagedir = packagedir
-        self.items = []
+    def __init__(self, batch):
+        self.root       = batch.dspace_saf
+        self.num_places = len(batch.last)
 
-    def write(self):
-        pass
+        os.makedirs(self.root, exist_ok=True)
+
 
 
 class SafResource():
 
     '''Class for an individual resource arranged for inclusion in a SAF package'''
 
-    def __init__(self):
-        pass
+    def __init__(self, eprint, package):
+        self.dir        = f'item_{int(eprint.id):0{package.num_places}d}'
+        self.path       = os.path.join(package.root, self.dir)
+        self.cont_file  = os.path.join(self.dir, 'contents')
+        self.dc_file    = os.path.join(self.dir, 'dublin_core.xml')
+        self.source     = eprint.__dict__
+        self.eprint_id  = eprint.id
+        self.metadata   = {}
+        self.binaries   = []
+        os.makedirs(self.path, exist_ok=True)
 
 
-class DSpaceSAF():
+    def map_source_metadata(self):
 
-    def __init__(self, metadata, inputpath, outputpath):
-        # read metadata
-        self.id        = metadata.get('dc.identifier.other')
-        self.metadata  = metadata
-        self.files_dir = inputpath
-        self.saf_dir   = outputpath
-        self.contents  = os.path.join(self.saf_dir, 'contents')
-        self.dc_file   = os.path.join(self.saf_dir, 'dublin_core.xml')
-        self.zip       = os.path.join(self.saf_dir, 'revisions.zip')
+        '''Clean and map DC export from Eprints to DC metadata fields for Dspace'''
 
-        # walk files and generate SAF package
-        os.mkdir(self.saf_dir)
-        self.walk_files()
-        self.create_revisions()
-        self.write_contents()
-        self.write_dcxml()
-        self.copy_files()
+        REQUIRED      = ['title', 'date']
+        SINGLE_VALUED = ['title', 'date']
 
-    def walk_files(self):
-        '''Walk a given directory tree and add absolute paths to all files
-        to two lists, one for regular files, one for revisions xml files'''
-        self.files = []
-        self.revisions = []
-        for root, dirs, files in os.walk(self.files_dir):
-            for f in files:
-                fullpath = os.path.join(root, f)
-                if f.startswith('.'):  # skip hidden files
-                    continue
-                elif root.endswith('revisions'):
-                    self.revisions.append(fullpath)
-                else:
-                    self.files.append(fullpath)
+        # Check for required fields:
+        for field in REQUIRED:
+            if field not in self.source:
+                print(f'ERROR: {self.eprint_id} has no field "{field}"')
+                return
 
-    def write_contents(self):
-        '''Write constituent files, one per line, to the contents file'''
-        with open(self.contents, 'w') as handle:
-            handle.write("\n".join([os.path.basename(f) for f in self.files]))
+        for field in SINGLE_VALUED:
+            if len(self.source[field]) > 1:
+                print(f'ERROR: {self.eprint_id} has multiple fields {field}')
+                return
 
-    def create_revisions(self):
-        '''Create a ZIP archive called revisions.zip that contains all xml
-        files from the EPrints revisions directory'''
-        with ZipFile(self.zip, 'a') as zip:
-            [zip.write(f, arcname=os.path.basename(f)) for f in self.files]
+        self.metadata['dc.title']                 = self.source['title']
+        #self.metadata['dc.contributor.author']    = self.source['author']
+        #self.metadata['dc.contributor.publisher'] = self.source['publisher']
+        self.metadata['dc.identifier.other']      = self.eprint_id
+        self.metadata['dc.citation']              = self.source['identifier']
+        self.metadata['dc.date.issued']           = self.source['date']
+        self.metadata['dc.description.uri']       = self.source['relation']
+        print(self.metadata)
+
+
+    def extract_issn_isbn(self):
+
+        self.metadata['dc.identifier.issn']       = self.source['citation']
+        self.metadata['dc.identifier.isbn']       = self.source['citation']
+        
+        '''
+        creator = dc.contributor.author (UNSPECIFIED added to entries without an author; see below)
+        contributor = dc.contributor.author
+        publisher = dc.contributor.publisher
+        type = dc.type
+        id = dc.identifier.other (this is the EPrints ID)
+        identifier = dc.citation
+        date = dc.date.issued
+        title = dc.title
+        relation = dc.description.uri (links to outside document)
+        ISSN = dc.identifier.issn (extracted from Identifier field/dc.citation)
+        ISBN = dc.identifier.isbn (extracted from Identifier field/dc.citation)
+        Add UNSPECIFIED to dc.contributor.author entries that are blank (both creator and contributor fields in MHHEA get mapped to dc.contributor.author so both need to be blank)
+        Map the following document types from MHHEA (type) to DRUM (dc.type); need to verify that all MHHEA document types are accounted for in DRUM
+            audio = other
+            teaching resource = learning object
+            thesis or dissertation = thesis
+            report document or other monograph = technical report
+            conference or workshop item = presentation
+            book section = book chapter
+        Remove unnecessary URLs from the Identifier (dc.citation) field 
+        Remove ISSN and ISBN from the Identifier (dc.citation) field
+        Remove MHHEA URL from the Relation (dc.description.uri) field leaving only the external URL
+        In the Type (dc.type) field, remove PeerReviewed NonPeerReviewed (only one entry is allowed for DOI)
+        Date (dc.date) field must conform to format YYYY
+        Delete the Format column
+        Remove the following files from records: revisions.zip, preview.jpg, and indexcodes.txt
+        '''
+
+
 
     def write_dcxml(self):
-        '''Generate an DC XML file from the metadata spreadsheet and 
-        serialize it to the file dublin_core.xml'''
+
+        '''Generate XML from the eprint metadata and serialize to dublin_core.xml'''
+
         root = etree.Element("dublin_core")
         for key, value in self.metadata.items():
             element = key.split('.')[1]
@@ -99,54 +126,12 @@ class DSpaceSAF():
             et.write(handle, xml_declaration=True, encoding='UTF-8',
                         pretty_print=True)
 
-    def copy_files(self):
-        '''Make a copy of each file in the eprints item directory in the 
-        SAF item directory'''
-        [copy(f, self.saf_dir) for f in self.files]
+
+    def write_contents(self):
+
+        '''Write constituent files, one per line, to the contents file'''
+
+        with open(self.cont_file, 'w') as handle:
+            handle.write("\n".join([os.path.basename(f) for f in self.binaries]))
 
 
-"""
-
-def main():
-    print_header()
-    # load batch configuration
-    print('Loading batch configuration...')
-    with open(sys.argv[1]) as handle:
-        config = yaml.load(handle)
-    # load lookup dictionary
-    print('Creating files lookup dictionary...')
-    lookup = DirLookup(os.path.join(config['ROOT'], 
-                                    config['PATH_LOOKUP']))
-    # load metadata spreadsheet
-    spreadsheet = os.path.join(config['ROOT'], 
-                               config['METADATA'])
-    # base dir for input
-    files_base = os.path.join(config['ROOT'], config['DATA'])
-    print('Pulling eprints files from {0}...'.format(files_base))
-    # base dir for output
-    saf_base = os.path.join(config['ROOT'], config['SAF_DIR'])
-    print('Writing SAF packages to {0}...'.format(saf_base))
-    try:
-        os.mkdir(saf_base)
-        print('Creating output dir {0}...'.format(saf_base))
-    except FileExistsError:
-        print('Output dir exists. Aborting batch.'.format(saf_base))
-        sys.exit()
-    # walk the data
-    print('Reading metadata spreadsheet...')
-    with open(spreadsheet) as handle:
-        reader = DictReader(handle)
-        print('Processing batch items...')
-        for n, row in enumerate(reader, 1):
-            id = row['dc.identifier.other']
-            title = row['dc.title']
-            print('  --> ({0}) EPrint #{1}: {2}'.format(n, id, title[:50]))
-            # lookup path using eprint id
-            relpath = lookup.get(id)
-            input_dir = os.path.join(files_base, relpath)
-            # generate output path
-            output_dir = os.path.join(saf_base, 'Item_{0}'.format(n))
-            # create SAF object
-            saf = DSpaceSAF(dict(row), input_dir, output_dir)
-
-"""
