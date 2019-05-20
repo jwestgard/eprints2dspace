@@ -29,6 +29,19 @@ class Batch():
         try:
             eprint = self.items[self.cursor]
             self.cursor += 1
+            eprint.local_cache = os.path.join(self.local_root, "eprints", eprint.filename)
+            if not os.path.isfile(eprint.local_cache):
+                q = self.source.query.format(eprint.id, self.source.archive)
+                response = requests.get(q)
+                if not response.status_code == 200:
+                    eprint.reachable = False
+                    return eprint
+                else:
+                    with open(eprint.local_cache, 'w') as handle:
+                        handle.write(response.text)
+            with open(eprint.local_cache) as handle:
+                eprint.parse(handle.read())
+                eprint.reachable = True
             return eprint
         except IndexError:
             raise StopIteration()
@@ -40,6 +53,7 @@ class EprintsServer():
 
     def __init__(self, **config):
         self.__dict__.update(config)
+        self.query = os.path.join(self.host_name, self.query_path)
 
 
 class EprintsResource():

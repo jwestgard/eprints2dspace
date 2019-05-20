@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+from datetime import datetime as dt
 import logging
 import os
 import requests
@@ -18,10 +19,20 @@ def main():
 
     '''(1) Start from list of eprint ids'''
 
+    logfile = dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
+    logpath = os.path.join(cfg.logs['dir'], logfile)
+    logging.basicConfig(filename=logpath, level=logging.INFO)
+
     batch = Batch(cfg.batch, cfg.source)
-    print(batch, batch.source)
-    print(batch.__dict__)
-    print(batch.source.__dict__)
+    logging.info('Batch created with {} resources'.format(len(batch.items)))
+    
+    for eprint in batch:
+        if eprint.reachable:
+            print(eprint.title)
+        else:
+            print('{} not reachable'.format(eprint.id))
+
+
     
     """
     errfile = os.path.join(batch.logdir, batch.errfile)
