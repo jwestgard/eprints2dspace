@@ -1,5 +1,19 @@
 import re
 
+def parse_eprint_file(path):
+    result = {}
+    with open(path, 'r') as handle:
+        lines = [line.strip() for line in handle.readlines()]
+    for line in lines:
+        if line is not '':
+            key, value = tuple(line.split(': ', 1))
+            if not key in result:
+                result[key] = [value]
+            else:
+                result[key].append(value)
+    return result
+            
+
 def map_source_metadata(self):
 
     '''Clean and map DC export from Eprints to DC metadata fields for Dspace'''
@@ -35,7 +49,27 @@ def map_source_metadata(self):
 def extract_issn_isbn(self):
     pass
         
-'''
+"""
+
+    def parse(self, txt):
+        '''Parse dublin-core keys and values into python object attributes'''
+        lines = [
+            line.strip() for line in txt.split('\n') if line.strip() is not ''
+            ]
+        for n, line in enumerate(lines):
+            # split line on first colon
+            key, value = tuple(line.split(': ', 1))
+            # default to empty list
+            attrib_list = getattr(self, key, [])
+            # update the existing value list and then the attribute
+            attrib_list.append(value)
+            setattr(self, key, attrib_list)
+
+    def to_csv(self):
+        return {k: ' || '.join(v) for k, v in self.__dict__.items()}
+
+
+
 creator = dc.contributor.author (UNSPECIFIED added to entries without an author; see below)
 contributor = dc.contributor.author
 publisher = dc.contributor.publisher
@@ -62,4 +96,4 @@ In the Type (dc.type) field, remove PeerReviewed NonPeerReviewed (only one entry
 Date (dc.date) field must conform to format YYYY
 Delete the Format column
 Remove the following files from records: revisions.zip, preview.jpg, and indexcodes.txt
-'''
+"""

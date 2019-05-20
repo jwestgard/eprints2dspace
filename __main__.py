@@ -7,82 +7,92 @@ import logging
 import os
 import requests
 import sys
-
 import config as cfg
-from extract import Batch
+
+from extract import EprintsResource
+from extract import EprintsServer
 from load import SafPackage
 from load import SafResource
 from transform import *
+
+
+class Batch():
+
+    '''Class for iterating over a set of resources to be extracted'''
+
+    def __init__(self, batch_config, source_config):
+        self.id_range      = batch_config['id_range']
+        self.eprints_dir   = batch_config['eprints_dir']
+        self.saf_dir       = batch_config['saf_dir']
+        self.server        = EprintsServer(**source_config)
+        self.cursor        = 0
+        self.ids           = self.generate_id_range()
+        self.max_id_length = len(str(self.ids[-1]))
+
+        if not os.path.exists(self.eprints_dir):
+            os.makedirs(self.eprints_dir)
+        if not os.path.exists(self.saf_dir):
+            os.makedirs(self.saf_dir)
+
+    def generate_id_range(self):
+        limits = self.id_range.split('-')
+        first  = int(limits[0])
+        last   = int(limits[1]) if len(limits) > 1 else first
+        return [id for id in range(first, last + 1)]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            eprint = EprintsResource(self.ids[self.cursor], 
+                        self.eprints_dir, self.server.query_pattern)
+            self.cursor += 1
+            return eprint
+        except IndexError:
+            raise StopIteration()
 
 
 def main():
 
     '''(1) Start from list of eprint ids'''
 
+    # Set up logging
+    logdir  = cfg.logs['dir']
     logfile = dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
-    logpath = os.path.join(cfg.logs['dir'], logfile)
+    logpath = os.path.join(logdir, logfile)
     logging.basicConfig(filename=logpath, level=logging.INFO)
 
+    # Initialize batch
     batch = Batch(cfg.batch, cfg.source)
-    logging.info('Batch created with {} resources'.format(len(batch.items)))
-    
-    for eprint in batch:
-        if eprint.reachable:
-            print(eprint.title)
-        else:
-            print('{} not reachable'.format(eprint.id))
+    saf = SafPackage(batch.saf_dir, batch.max_id_length)
+    logging.info('Batch created with {} IDs'.format(len(batch.ids)))
 
-
-    
-    """
-    errfile = os.path.join(batch.logdir, batch.errfile)
-    mapfile = os.path.join(batch.logdir, batch.mapfile)
+    errfile = os.path.join(logdir, cfg.logs['skipfile'])
+    mapfile = os.path.join(logdir, cfg.logs['mapfile'])
     fieldnames = ['id', 'title', 'creator', 'date', 'relation', 'filename',
-                  'subject', 'type', 'format', 'identifier', 'description', 'publisher',
-                  'contributor']
+                  'subject', 'type', 'format', 'identifier', 'description', 
+                  'publisher', 'contributor']
 
     with open(errfile, 'w') as errhandle, open(mapfile, 'w') as maphandle:
         errlog = csv.writer(errhandle)
         maplog = csv.DictWriter(maphandle, fieldnames=fieldnames)
         maplog.writeheader()
-        
+
         '''(2) Pull metadata or read files from data dir'''
 
-        for id in batch:
-            eprint = Eprint(id)
-            local_path = os.path.join(batch.local_cache, eprint.filename)
-            
-            # check for a cached metadata file, pull from server if not found
-            if not os.path.isfile(local_path):
-                query = batch.query_template.format(id, batch.archive_name)
-                response = requests.get(query)
-                if response.status_code == 200:
-                    with open(local_path, 'w') as handle:
-                        handle.write(response.text)
+        for eprint in batch:
+            if not eprint.is_cached():
+                status = eprint.server_response()
+                if status == 200:
+                    eprint.cache_locally()
                 else:
-                    errlog.writerow([id, response.status_code, query])
+                    errlog.writerow([eprint.id, status, eprint.query_path])
                     continue
-                
-            '''(3) Parse metadata file'''
-            
-            with open(local_path, 'r') as handle:
-                eprint.parse(handle.read())
-                maplog.writerow(eprint.to_csv())
 
-            '''(4) Transform metadata'''
-
-            package = SafPackage(batch)
-            resource = SafResource(eprint, package)
-            
-            print(resource.path)
-            resource.map_source_metadata()
-    """
-
-
-
-    '''(5) Write to SAF package'''
-
-
+            '''(3) Transform metadata'''
+            metadata = parse_eprint_file(eprint.local_path)
+            print(metadata)
 
 if __name__ == "__main__":
     main()

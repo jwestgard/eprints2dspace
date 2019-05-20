@@ -13,17 +13,16 @@ class SafPackage():
 
     '''Class for building Dspace Simple Archive Format packages'''
 
-    def __init__(self, batch):
-        self.root       = batch.dspace_saf
-        self.num_places = len(batch.last)
+    def __init__(self, root, max_width):
+        self.root      = root
+        self.max_width = max_width
 
         os.makedirs(self.root, exist_ok=True)
 
 
-
 class SafResource():
 
-    '''Class for an individual resource arranged for inclusion in a SAF package'''
+    '''Class for individual resources arranged in a SAF package'''
 
     def __init__(self, eprint, package):
         self.dir        = f'item_{int(eprint.id):0{package.num_places}d}'
@@ -34,13 +33,13 @@ class SafResource():
         self.eprint_id  = eprint.id
         self.metadata   = {}
         self.binaries   = []
+        
         os.makedirs(self.path, exist_ok=True)
-
 
 
     def write_dcxml_file(self):
 
-        '''Generate XML from the eprint metadata and serialize to dublin_core.xml'''
+        '''Generate XML from eprint metadata & write to dublin_core.xml'''
 
         root = etree.Element("dublin_core")
         for key, value in self.metadata.items():
@@ -63,12 +62,13 @@ class SafResource():
                         pretty_print=True)
 
 
-
     def write_contents_file(self):
 
         '''Write constituent files, one per line, to the contents file'''
 
         with open(self.cont_file, 'w') as handle:
-            handle.write("\n".join([os.path.basename(f) for f in self.binaries]))
+            handle.write("\n".join(
+                [os.path.basename(f) for f in self.binaries])
+                )
 
 

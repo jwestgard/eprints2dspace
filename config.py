@@ -1,13 +1,13 @@
 
 source = {
     'host_name': 'http://health-equity.lib.umd.edu',
-    'query_path': 'cgi/export/{0}/DC/{1}-{0}.txt',
-    'archive': 'minorityhealth-archive'
+    'query_path': 'cgi/export/{0}/DC/minorityhealth-archive-{0}.txt'
     }
 
 batch = {
     'id_range': '1-4500',
-    'local_root': 'data'
+    'eprints_dir': 'data/eprints',
+    'saf_dir': 'data/saf'
     }
 
 transformations = {}
