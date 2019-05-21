@@ -91,8 +91,10 @@ def main():
                     continue
 
             '''(3) Transform metadata'''
-            metadata = parse_eprint_file(eprint.local_path)
-            print(metadata)
+            metadata = parse_metadata(eprint.local_path)
+            for rel in metadata['relation']:
+                if not rel.startswith(batch.server.host_name):
+                    print(check_ext_link(rel))
 
 if __name__ == "__main__":
     main()

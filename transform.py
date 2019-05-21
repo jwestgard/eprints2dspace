@@ -1,6 +1,7 @@
 import re
+import requests
 
-def parse_eprint_file(path):
+def parse_metadata(path):
     result = {}
     with open(path, 'r') as handle:
         lines = [line.strip() for line in handle.readlines()]
@@ -12,7 +13,12 @@ def parse_eprint_file(path):
             else:
                 result[key].append(value)
     return result
-            
+
+
+def check_ext_link(url):
+    result = requests.get(url)
+    return (result.status_code, url)
+
 
 def map_source_metadata(self):
 
