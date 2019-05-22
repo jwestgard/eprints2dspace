@@ -15,10 +15,18 @@ def parse_metadata(path):
     return result
 
 
-def check_ext_link(url):
-    result = requests.get(url)
-    return (result.status_code, url)
-
+def check_ext_link(original):
+    try:
+        response = requests.head(original, timeout=5)
+        status = response.status_code
+        msg = requests.status_codes._codes[status][0]
+        new = None
+        if status >= 300 and status < 400:
+            redirect = requests.get(original, timeout=5)
+            new = redirect.url
+        return (status, msg, original, new)
+    except:
+        return ("error", None, original, None)
 
 def map_source_metadata(self):
 

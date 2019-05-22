@@ -74,6 +74,11 @@ def main():
                   'subject', 'type', 'format', 'identifier', 'description', 
                   'publisher', 'contributor']
 
+    handleErrs = open(os.path.join(logdir, 'errors.csv'), 'w')
+    handle400s = open(os.path.join(logdir, '400s.csv'),   'w')
+    handle300s = open(os.path.join(logdir, '300s.csv'),   'w')
+    handle200s = open(os.path.join(logdir, '200s.csv'),   'w')
+
     with open(errfile, 'w') as errhandle, open(mapfile, 'w') as maphandle:
         errlog = csv.writer(errhandle)
         maplog = csv.DictWriter(maphandle, fieldnames=fieldnames)
@@ -81,7 +86,10 @@ def main():
 
         '''(2) Pull metadata or read files from data dir'''
 
-        for eprint in batch:
+        link_count = 0
+        for n, eprint in enumerate(batch, 1):
+            msg = 'Total checked: {0} | External links: {1}'
+            print(msg.format(n, link_count), end='\r')
             if not eprint.is_cached():
                 status = eprint.server_response()
                 if status == 200:
@@ -92,9 +100,31 @@ def main():
 
             '''(3) Transform metadata'''
             metadata = parse_metadata(eprint.local_path)
+
             for rel in metadata['relation']:
                 if not rel.startswith(batch.server.host_name):
-                    print(check_ext_link(rel))
+                    link_count += 1
+                    (status, msg, orig, new) = check_ext_link(rel)
+                    fields = (eprint.id, status, msg, orig, new)
+                    result = [str(field) for field in fields]
+                    if status == "error":
+                        handleErrs.write(','.join(result) + '\n')
+                        handleErrs.flush()
+                    elif status >= 400:
+                        handle400s.write(','.join(result) + '\n')
+                        handle400s.flush()
+                    elif status >= 300:
+                        handle300s.write(','.join(result) + '\n')
+                        handle300s.flush()
+                    elif status >= 200:
+                        handle200s.write(','.join(result) + '\n')
+                        handle200s.flush()
+
+    handleErrs.close()
+    handle400s.close()
+    handle300s.close()
+    handle200s.close()
+                
 
 if __name__ == "__main__":
     main()
