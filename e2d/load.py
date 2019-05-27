@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-
 from lxml import etree
 import os
-from shutil import copy
-import sys
-import yaml
-from zipfile import ZipFile
 
 
 class SafPackage():

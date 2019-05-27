@@ -55,7 +55,8 @@ class Batch():
             os.makedirs(self.saf_dir)
 
     def write_mapfile(self):
-        fieldnames = ['id', 'extracted', 'transformed', 'loaded']
+        fieldnames = ['id', 'extracted', 'not_ext_reason', 'transformed', 
+                      'not_trans_reason','loaded', 'not_loaded_reason']
         handle = open(self.mapfile, 'w')
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
@@ -76,12 +77,15 @@ class Batch():
 
 class Resource():
     '''Class that tracks item's progress in ETL process'''
-    def __init__(self, id, extracted=False, transformed=False, loaded=False):
-        self.id          = int(id)
-        self.extracted   = bool(extracted == 'True')
-        self.transformed = bool(transformed == 'True')
-        self.loaded      = bool(loaded == 'True')
-
+    def __init__(self, id, extracted=False, not_ext_reason=None, transformed=False, 
+                 not_trans_reason=None, loaded=False, not_loaded_reason=None):
+        self.id                 = int(id)
+        self.extracted          = bool(extracted == 'True')
+        self.not_ext_reason     = not_ext_reason
+        self.transformed        = bool(transformed == 'True')
+        self.not_trans_reason   = not_trans_reason
+        self.loaded             = bool(loaded == 'True')
+        self.not_loaded_reason  = not_loaded_reason
 
 def print_header():
     '''Format and print a header to the console'''
