@@ -8,7 +8,6 @@ import yaml
 from zipfile import ZipFile
 
 
-
 class SafPackage():
 
     '''Class for building Dspace Simple Archive Format packages'''
@@ -16,7 +15,6 @@ class SafPackage():
     def __init__(self, root, max_width):
         self.root      = root
         self.max_width = max_width
-
         os.makedirs(self.root, exist_ok=True)
 
 
@@ -24,16 +22,14 @@ class SafResource():
 
     '''Class for individual resources arranged in a SAF package'''
 
-    def __init__(self, eprint, package):
-        self.dir        = f'item_{int(eprint.id):0{package.num_places}d}'
+    def __init__(self, id, metadata, package):
+        self.dir        = f'item_{int(id):0{package.max_width}d}'
         self.path       = os.path.join(package.root, self.dir)
-        self.cont_file  = os.path.join(self.dir, 'contents')
-        self.dc_file    = os.path.join(self.dir, 'dublin_core.xml')
-        self.source     = eprint.__dict__
-        self.eprint_id  = eprint.id
-        self.metadata   = {}
-        self.binaries   = []
-        
+        self.cont_file  = os.path.join(self.path, 'contents')
+        self.dc_file    = os.path.join(self.path, 'dublin_core.xml')
+        self.binaries   = metadata.pop('binaries')
+        self.metadata   = metadata
+
         os.makedirs(self.path, exist_ok=True)
 
 
@@ -44,9 +40,9 @@ class SafResource():
         root = etree.Element("dublin_core")
         for key, value in self.metadata.items():
             schema, element = key.split('.', 1)
-            try:
+            if len(element.split('.')) == 2:
                 element, qualifier = element.split('.')
-            except IndexError:
+            else:
                 qualifier = None
             if value is not None and value != '':
                 for instance in value:
@@ -70,5 +66,4 @@ class SafResource():
             handle.write("\n".join(
                 [os.path.basename(f) for f in self.binaries])
                 )
-
 
