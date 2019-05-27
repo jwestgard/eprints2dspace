@@ -46,21 +46,31 @@ def main():
                 else:
                     logging.error(f'Could not reach {eprint.id}, response {status}')
                     res.extracted = False
-                    res.extracted_reason = status
+                    res.not_ext_reason = status
                     continue
 
         '''(3) Transform metadata'''
 
         if not res.transformed:
-            transformed_metadata = transform(eprint.local_path)
-            res.transformed = True
-            print(n, transformed_metadata['dc.title'][0])
+            try:
+                transformed_metadata = transform(eprint.local_path)
+                res.transformed = True
+                print(n, transformed_metadata['dc.title'][0])
+            except:
+                res.transformed = False
+                continue
 
         '''(4) Write SAF'''
+
         if not res.loaded:
-            sr = SafResource(eprint.id, transformed_metadata, batch.destination)
-            sr.write_dcxml_file()
-            sr.write_contents_file()
+            try:
+                sr = SafResource(eprint.id, transformed_metadata, batch.destination)
+                sr.write_dcxml_file()
+                sr.write_contents_file()
+                res.loaded = True
+            except:
+                res.loaded = False
+                continue
 
     '''(5) Summarize batch processing results'''
     
