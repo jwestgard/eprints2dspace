@@ -58,6 +58,7 @@ def main():
                 print(n, transformed_metadata['dc.title'][0])
             except:
                 res.transformed = False
+                res.not_trans_reason = 'transformation error'
                 continue
 
         '''(4) Write SAF'''
@@ -67,9 +68,11 @@ def main():
                 sr = SafResource(eprint.id, transformed_metadata, batch.destination)
                 sr.write_dcxml_file()
                 sr.write_contents_file()
+                sr.fetch_binaries()
                 res.loaded = True
             except:
                 res.loaded = False
+                res.not_loaded_reason = 'could not create SAF'
                 continue
 
     '''(5) Summarize batch processing results'''
