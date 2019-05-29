@@ -39,14 +39,14 @@ fields = [{
     'mapping': {
         'Article':                              'Article',
         'Book':                                 'Book',
+        'Book Section':                         'Book Chapter',
         'Image':                                'Image',
         'Audio':                                'Other',
-        'Video':                                'Other',
+        'Video':                                'Video',
         'Teaching Resource':                    'Learning Object',
         'Thesis or Dissertation':               'Thesis',
         'Report Document or other Monograph':   'Technical Report',
         'Conference or Workshop Item':          'Presentation',
-        'Book Section':                         'Book Chapter',
         'Other':                                'Other',
         'PeerReviewed':                         None,
         'NonPeerReviewed':                      None
