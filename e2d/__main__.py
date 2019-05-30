@@ -18,14 +18,23 @@ def main():
     batch = Batch(args.config, args.mapfile)
 
     logfile = os.path.join(
-        batch.log_dir, 
-        dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
+        batch.log_dir, dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
         )
-    logging.basicConfig(filename=logfile, level=logging.INFO)
-    logging.info('Created batch with {} items'.format(len(batch.contents)))
-    logging.info('Created source server object at {}'.format(batch.source.host_name))
-    logging.info('Caching extracted data at {}'.format(batch.local_cache))
-    logging.info('Created destination package at {}'.format(batch.destination.root))
+    logging.basicConfig(
+        filename=logfile, level=logging.INFO
+        )
+    logging.info(
+        'Created batch with {} items'.format(len(batch.contents))
+        )
+    logging.info(
+        'Created source server object at {}'.format(batch.source.host_name)
+        )
+    logging.info(
+        'Caching extracted data at {}'.format(batch.local_cache)
+        )
+    logging.info(
+        'Created destination package at {}'.format(batch.destination.root)
+        )
 
     for n, res in enumerate(batch.contents):
 
@@ -44,7 +53,9 @@ def main():
                     eprint.cache_locally()
                     res.extracted = True
                 else:
-                    logging.error(f'Could not reach {eprint.id}, response {status}')
+                    logging.error(
+                        f'Could not reach {eprint.id}, response {status}'
+                        )
                     res.extracted = False
                     res.not_ext_reason = status
                     continue
@@ -65,7 +76,9 @@ def main():
 
         if not res.loaded:
             try:
-                sr = SafResource(eprint.id, transformed_metadata, batch.destination)
+                sr = SafResource(
+                    eprint.id, transformed_metadata, batch.destination
+                    )
                 sr.write_dcxml_file()
                 sr.write_contents_file()
                 sr.fetch_binaries()

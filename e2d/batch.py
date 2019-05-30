@@ -58,7 +58,10 @@ class Batch():
         fieldnames = ['id', 'extracted', 'not_ext_reason', 'transformed', 
                       'not_trans_reason','loaded', 'not_loaded_reason']
         handle = open(self.mapfile, 'w')
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction='ignore')
+        writer = csv.DictWriter(handle, 
+                                fieldnames=fieldnames,
+                                extrasaction='ignore'
+                                )
         writer.writeheader()
         for resource in self.contents:
             writer.writerow(resource.__dict__)
@@ -86,6 +89,7 @@ class Resource():
         self.not_trans_reason   = not_trans_reason
         self.loaded             = bool(loaded == 'True')
         self.not_loaded_reason  = not_loaded_reason
+
 
 def print_header():
     '''Format and print a header to the console'''
