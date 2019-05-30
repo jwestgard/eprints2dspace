@@ -54,7 +54,7 @@ fields = [{
     'pattern':     None
     },{
     'source':      'identifier',
-    'destination': 'dc.citation',
+    'destination': 'dc.identifier.citation',
     'required':    False,
     'unique':      False,
     'condition':   lambda x: not x.startswith('http://health-equity.lib.umd.edu'),

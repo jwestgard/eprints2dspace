@@ -60,7 +60,6 @@ def transform(path):
             filtered = [v for v in src_value if condition(v)]
         else:
             filtered = src_value
-
         # if a mapping is specified map each result appropriately
         if mapping:
             for v in filtered:
@@ -74,15 +73,15 @@ def transform(path):
                     result[dest_key].append(match.group(1))
         # otherwise, just send the filtered values through unaltered
         else:
-            result[dest_key] = filtered
-
+            result[dest_key].extend(filtered)
         # finally, strip excess whitespace from all values in the field
         result[dest_key] = [' '.join(v.split()) for v in result[dest_key]]
-
+        
     # set appropriate defaults for any fields that remain empty
     for field in defaults:
-        if len(result[field]) is 0:
+        if len(result[field]) == 0:
             result[field].append(defaults[field])
 
+    print(result)
     return result
 
