@@ -44,7 +44,8 @@ def transform(path):
         unique    = field['unique']
         condition = field['condition']
         mapping   = field['mapping']
-        pattern   = field['pattern']
+        match     = field['pattern']
+        replace   = field['replace']
 
         result.setdefault(dest_key, [])
 

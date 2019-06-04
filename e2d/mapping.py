@@ -46,7 +46,7 @@ fields = [{
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
                         )
-    'replace':      r'((ISBN|ISSN) *[\dX-]+)\s'
+    'replace':      (r'((ISBN|ISSN) *[\dX-]+)\s', '')
     },{
     'source':      'identifier',
     'destination': 'binaries',
@@ -63,7 +63,7 @@ fields = [{
     'condition':   lambda x: x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
-    'match':       r'http://health-equity\.lib\.umd\.edu/(\d+)'
+    'replace':       (r'http://health-equity\.lib\.umd\.edu/', 'Eprint ID ')
     },{
     'source':      'relation',
     'destination': 'dc.description.uri',
