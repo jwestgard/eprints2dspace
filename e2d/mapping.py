@@ -5,24 +5,17 @@ fields = [{
     'unique':      True
     },{
     'source':      'creator',
-    'destination': 'dc.contributor.author',
-    'required':    False,
-    'unique':      False
+    'destination': 'dc.contributor.author'
     },{
     'source':      'contributor',
-    'destination': 'dc.contributor.author',
-    'required':    False,
-    'unique':      False
+    'destination': 'dc.contributor.author'
     },{
     'source':      'publisher',
-    'destination': 'dc.contributor.publisher',
-    'required':    False,
+    'destination': 'dc.publisher',
     'unique':      True
      },{
     'source':      'type',
     'destination': 'dc.type',
-    'required':    False,
-    'unique':      False,
     'mapping': {
         'Article':                              'Article',
         'Book':                                 'Book',
@@ -41,17 +34,13 @@ fields = [{
     },{
     'source':      'identifier',
     'destination': 'dc.identifier.citation',
-    'required':    False,
-    'unique':      False,
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
-                        )
-    'replace':      (r'((ISBN|ISSN) *[\dX-]+)\s', '')
+                        ),
+    'replace':      (r'((ISBN|ISSN)\s+[\dX-]+)\s*', '')
     },{
     'source':      'identifier',
     'destination': 'binaries',
-    'required':    False,
-    'unique':      False,
     'condition':   lambda x: x.startswith(
                         'http://health-equity.lib.umd.edu'
                         )
@@ -59,16 +48,13 @@ fields = [{
     'source':      'relation',
     'destination': 'dc.identifier.other',
     'required':    True,
-    'unique':      False,
     'condition':   lambda x: x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
-    'replace':       (r'http://health-equity\.lib\.umd\.edu/', 'Eprint ID ')
+    'replace':       (r'http://health-equity\.lib\.umd\.edu/(\d+)/', r'Eprint ID \1')
     },{
     'source':      'relation',
     'destination': 'dc.description.uri',
-    'required':    False,
-    'unique':      False,
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
                         )
@@ -81,8 +67,6 @@ fields = [{
     },{
     'source':      'identifier',
     'destination': 'dc.identifier.isbn',
-    'required':    False,
-    'unique':      False,
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
@@ -90,22 +74,16 @@ fields = [{
     },{
     'source':      'identifier',
     'destination': 'dc.identifier.issn',
-    'required':    False,
-    'unique':      False,
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
     'match':       r'ISSN\s+([\S]+)'
     },{
     'source':      'subject',
-    'destination': 'dc.subject',
-    'required':    False,
-    'unique':      False
+    'destination': 'dc.subject'
     },{
     'source':      'description',
-    'destination': 'dc.description.abstract',
-    'required':    False,
-    'unique':      False
+    'destination': 'dc.description.abstract'
     }
 ]
 

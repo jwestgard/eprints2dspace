@@ -38,14 +38,23 @@ def transform(path):
     result = {}
 
     for field in fields:
+        print(field)
         src_value = eprint.get(field['source'], '')
-        dest_key  = field['destination']
-        required  = field['required']
-        unique    = field['unique']
-        condition = field['condition']
-        mapping   = field['mapping']
-        match     = field['pattern']
-        replace   = field['replace']
+        print(src_value)
+        dest_key  = field.get('destination')
+        print(dest_key)
+        required  = field.get('required', False)
+        print(required)
+        unique    = field.get('unique', False)
+        print(unique)
+        condition = field.get('condition', None)
+        print(condition)
+        mapping   = field.get('mapping', None)
+        print(mapping)
+        match     = field.get('match', None)
+        print(match)
+        replace   = field.get('replace', None)
+        print(replace)
 
         result.setdefault(dest_key, [])
 
@@ -58,20 +67,29 @@ def transform(path):
 
         # filter the possible results
         if condition:
+            print('condition is true')
             filtered = [v for v in src_value if condition(v)]
         else:
             filtered = src_value
         # if a mapping is specified map each result appropriately
         if mapping:
+            print('mapping is true')
             for v in filtered:
                 if mapping[v] is not None:
                     result[dest_key].append(mapping[v])
         # otherwise, if a pattern is set, try to match it
-        elif pattern:
+        elif match:
+            print('match is true')
             for v in filtered:
-                match = re.search(pattern, v)
-                if match:
-                    result[dest_key].append(match.group(1))
+                m = re.search(match, v)
+                if m:
+                    result[dest_key].append(m.group(1))
+        elif replace:
+            print('replace is true')
+            for v in filtered:
+                updated = re.sub(replace[0], replace[1], v)
+                if updated:
+                    result[dest_key].append(updated)
         # otherwise, just send the filtered values through unaltered
         else:
             result[dest_key].extend(filtered)
