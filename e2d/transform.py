@@ -19,17 +19,19 @@ def parse_source(path):
 
 
 def check_ext_link(original):
+    print(f'checking {original}')
     try:
-        response = requests.head(original, timeout=5)
+        response = requests.head(original, timeout=20)
         status = response.status_code
+        print(response.status_code)
         msg = requests.status_codes._codes[status][0]
-        new = None
+        new = ''
         if status >= 300 and status < 400:
-            redirect = requests.get(original, timeout=5)
+            redirect = requests.get(original, timeout=20)
             new = redirect.url
         return (status, msg, original, new)
     except:
-        return ("error", None, original, None)
+        return ("error", '', original, '')
 
 
 def transform(path):
@@ -58,6 +60,7 @@ def transform(path):
 
         result.setdefault(dest_key, [])
 
+        # check for well-formed input according to specified parameters
         if required:
             if src_value is '':
                 print('required field error')
@@ -65,35 +68,37 @@ def transform(path):
             if len(src_value) > 1:
                 print('non-unique error', field['source'], src_value)
 
-        # filter the possible results
+        # filter the possible results if called for
         if condition:
-            print('condition is true')
             filtered = [v for v in src_value if condition(v)]
         else:
             filtered = src_value
-        # if a mapping is specified map each result appropriately
+        
+        # if a value mapping is specified, map each result appropriately
         if mapping:
-            print('mapping is true')
             for v in filtered:
                 if mapping[v] is not None:
                     result[dest_key].append(mapping[v])
-        # otherwise, if a pattern is set, try to match it
+
+        # if a match pattern is specified, extract the match
         elif match:
-            print('match is true')
             for v in filtered:
                 m = re.search(match, v)
                 if m:
                     result[dest_key].append(m.group(1))
+
+        # if replacement pattern has been specified, perform the replacement
         elif replace:
-            print('replace is true')
             for v in filtered:
                 updated = re.sub(replace[0], replace[1], v)
                 if updated:
                     result[dest_key].append(updated)
+
         # otherwise, just send the filtered values through unaltered
         else:
             result[dest_key].extend(filtered)
-        # finally, strip excess whitespace from all values in the field
+
+        # finally, strip any excess whitespace from all values in the field
         result[dest_key] = [' '.join(v.split()) for v in result[dest_key]]
         
     # set appropriate defaults for any fields that remain empty
@@ -101,6 +106,5 @@ def transform(path):
         if len(result[field]) == 0:
             result[field].append(defaults[field])
 
-    print(result)
     return result
 

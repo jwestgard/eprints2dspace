@@ -55,8 +55,11 @@ class Batch():
             os.makedirs(self.saf_dir)
 
     def write_mapfile(self):
-        fieldnames = ['id', 'extracted', 'not_ext_reason', 'transformed', 
-                      'not_trans_reason','loaded', 'not_loaded_reason']
+        fieldnames = ['id', 'extracted', 'not_ext_reason', 
+                      'transformed', 'not_trans_reason',
+                      'link_check', 'orig_uri', 'new_uri',
+                      'loaded', 'not_loaded_reason'
+                      ]
         handle = open(self.mapfile, 'w')
         writer = csv.DictWriter(handle, 
                                 fieldnames=fieldnames,
@@ -80,13 +83,20 @@ class Batch():
 
 class Resource():
     '''Class that tracks item's progress in ETL process'''
-    def __init__(self, id, extracted=False, not_ext_reason=None, transformed=False, 
-                 not_trans_reason=None, loaded=False, not_loaded_reason=None):
+    def __init__(self, id, extracted=False, not_ext_reason=None, 
+                 transformed=False, not_trans_reason=None, 
+                 link_check=False, status=None, orig_uri=None, new_uri=None,
+                 loaded=False, not_loaded_reason=None
+                 ):
         self.id                 = int(id)
         self.extracted          = bool(extracted == 'True')
         self.not_ext_reason     = not_ext_reason
         self.transformed        = bool(transformed == 'True')
         self.not_trans_reason   = not_trans_reason
+        self.link_check         = bool(link_check == 'True')
+        self.status             = status
+        self.orig_uri           = orig_uri
+        self.new_uri            = new_uri
         self.loaded             = bool(loaded == 'True')
         self.not_loaded_reason  = not_loaded_reason
 

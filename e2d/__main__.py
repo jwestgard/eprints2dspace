@@ -16,6 +16,8 @@ def main():
     print_header()
     args = parse_args()
     batch = Batch(args.config, args.mapfile)
+    
+    link_file = open('links.csv', 'w', buffering=1)
 
     logfile = os.path.join(
         batch.log_dir, dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
@@ -40,7 +42,9 @@ def main():
 
         '''(2) Pull metadata or read files from data dir'''
 
-        eprint = EprintsResource(res.id, batch.local_cache, batch.source.query_pattern)
+        eprint = EprintsResource(
+            res.id, batch.local_cache, batch.source.query_pattern
+            )
         
         if not res.extracted:
             if eprint.is_cached():
@@ -66,13 +70,23 @@ def main():
             try:
                 transformed_metadata = transform(eprint.local_path)
                 res.transformed = True
-                print(n, transformed_metadata['dc.title'][0])
+                title = transformed_metadata['dc.title'][0]
+                logging.info(f'Successfully transformed {title[:20]}')
             except:
                 res.transformed = False
                 res.not_trans_reason = 'transformation error'
+                logging.error(f'Could not transform metadata for {eprint.id}')
                 continue
 
-        '''(4) Write SAF'''
+            '''(4) Check and Update External Links'''
+            links = transformed_metadata['dc.description.uri']
+            for uri in links:
+                res.status, msg, res.orig_uri, res.new_uri = check_ext_link(uri)
+                link_file.write(','.join([str(res.status), res.orig_uri, 
+                                          res.new_uri]) + '\n')
+            
+        
+        '''(5) Write SAF'''
 
         if not res.loaded:
             try:
