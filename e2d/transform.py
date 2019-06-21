@@ -21,13 +21,12 @@ def parse_source(path):
 def check_ext_link(original):
     print(f'checking {original}')
     try:
-        response = requests.head(original, timeout=20)
+        response = requests.head(original, timeout=10)
         status = response.status_code
-        print(response.status_code)
         msg = requests.status_codes._codes[status][0]
         new = ''
         if status >= 300 and status < 400:
-            redirect = requests.get(original, timeout=20)
+            redirect = requests.get(original, timeout=10)
             new = redirect.url
         return (status, msg, original, new)
     except:
@@ -40,23 +39,14 @@ def transform(path):
     result = {}
 
     for field in fields:
-        print(field)
         src_value = eprint.get(field['source'], '')
-        print(src_value)
         dest_key  = field.get('destination')
-        print(dest_key)
         required  = field.get('required', False)
-        print(required)
         unique    = field.get('unique', False)
-        print(unique)
         condition = field.get('condition', None)
-        print(condition)
         mapping   = field.get('mapping', None)
-        print(mapping)
         match     = field.get('match', None)
-        print(match)
         replace   = field.get('replace', None)
-        print(replace)
 
         result.setdefault(dest_key, [])
 
