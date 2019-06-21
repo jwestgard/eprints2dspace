@@ -12,9 +12,9 @@ def parse_source(path):
         if line is not '':
             key, value = tuple(line.split(': ', 1))
             if not key in result:
-                result[key] = [value]
+                result[key] = [value.strip()]
             else:
-                result[key].append(value)
+                result[key].append(value.strip())
     return result
 
 
