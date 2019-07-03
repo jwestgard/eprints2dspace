@@ -16,9 +16,6 @@ def main():
     print_header()
     args = parse_args()
     batch = Batch(args.config, args.mapfile)
-    
-    link_file = open('links.csv', 'w', buffering=1)
-
     logfile = os.path.join(
         batch.log_dir, dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
         )
@@ -78,14 +75,6 @@ def main():
                 logging.error(f'Could not transform metadata for {eprint.id}')
                 continue
 
-            '''(4) Check and Update External Links'''
-            links = transformed_metadata['dc.description.uri']
-            for uri in links:
-                res.status, msg, res.orig_uri, res.new_uri = check_ext_link(uri)
-                link_file.write(','.join([str(res.status), res.orig_uri, 
-                                          res.new_uri]) + '\n')
-            
-        
         '''(5) Write SAF'''
 
         if not res.loaded:
@@ -103,7 +92,7 @@ def main():
                 continue
 
     '''(5) Summarize batch processing results'''
-    
+
     batch.write_mapfile()
 
 

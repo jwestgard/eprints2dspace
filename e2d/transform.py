@@ -18,21 +18,6 @@ def parse_source(path):
     return result
 
 
-def check_ext_link(original):
-    print(f'checking {original}')
-    try:
-        response = requests.head(original, timeout=10)
-        status = response.status_code
-        msg = requests.status_codes._codes[status][0]
-        new = ''
-        if status >= 300 and status < 400:
-            redirect = requests.get(original, timeout=10)
-            new = redirect.url
-        return (status, msg, original, new)
-    except:
-        return ("error", '', original, '')
-
-
 def transform(path):
 
     eprint = parse_source(path)

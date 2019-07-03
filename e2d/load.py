@@ -64,7 +64,3 @@ class SafResource():
                     handle.write(response.content)
             print('  • Download: {0} -> {1}'.format(url, local_path))
 
-    def update_links(self):
-        '''Check links, updating redirects with the current URL, 
-            & record bad links'''
-        pass
