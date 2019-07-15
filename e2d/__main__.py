@@ -101,8 +101,9 @@ def main():
     print('Applying extra actions', file=sys.stdout)
     for n, action in enumerate(batch.extra, 1):
         modpath = action['module']
-        params = [os.path.join('e2d/extra', p) for p in action['parameters']]
-        print(f'  {n}. Calling {modpath.rstrip(".")} with {params}')
+        params = [p for p in action['parameters']]
+        print(f'  {n}. Calling {modpath.rstrip(".")} with {params}', 
+                file=sys.stdout)
         module = import_module(modpath, package='e2d.extra')
         module.main(*params)
 

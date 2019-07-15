@@ -8,6 +8,10 @@ required:
     log_dir:     'logs'
 
 extra:
-    move_aside:   {module: .add_keywords, parameters: [add_keywords.csv]}
-    add_keywords: {module: .move_aside,   parameters: [move_aside.txt]}
-    update_links: {module: .update_links, parameters: None}
+    #add_keywords:   {module: .add_keywords, parameters: [add_keywords.csv]}
+    move_aside: {module: .move_aside,   
+                parameters: [data/saf, 
+                             data/cellar, 
+                             e2d/extra/move_aside.txt]
+                             }
+    #update_links: {module: .update_links, parameters: None}
