@@ -51,7 +51,9 @@ fields = [{
     'condition':   lambda x: x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
-    'replace':       (r'http://health-equity\.lib\.umd\.edu/(\d+)/', r'Eprint ID \1')
+    'replace':     (r'http://health-equity\.lib\.umd\.edu/(\d+)/', 
+                        r'Eprint ID \1'
+                        )
     },{
     'source':      'relation',
     'destination': 'dc.description.uri',

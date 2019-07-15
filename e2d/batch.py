@@ -34,9 +34,9 @@ class Batch():
 
         # Read mapfile or setup batch contents
         try:
-            with open(self.mapfile) as handle:
-                reader = csv.DictReader(handle)
-                self.contents = [Resource(**row) for row in reader]
+            with open(self.id_file) as handle:
+                self.ids = [id.strip() for id in handle.readlines()]
+                self.contents = [Resource(id) for row in reader]
                 if len(self.contents) == 0:
                     raise FileNotFoundError
         except FileNotFoundError:
