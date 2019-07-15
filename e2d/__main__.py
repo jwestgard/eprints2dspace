@@ -17,11 +17,10 @@ def main():
     args = parse_args()
     if os.path.isfile(args.id_file):
         print('id file found!)
+        batch = Batch(args.config, args.mapfile, args.ids)
     else:
-        
-    
-    batch = Batch(args.config, args.mapfile, args.ids)
-    
+        batch = Batch(args.config, args.mapfile)
+
     logfile = os.path.join(
         batch.log_dir, dt.now().strftime("%Y%m%d%H%M%S") + '.txt'
         )
@@ -89,7 +88,6 @@ def main():
                 link_file.write(','.join([str(res.status), res.orig_uri, 
                                           res.new_uri]) + '\n')'''
             
-        
         '''(5) Write SAF'''
 
         '''if not res.loaded:
@@ -106,9 +104,10 @@ def main():
                 res.not_loaded_reason = 'could not create SAF'
                 continue'''
 
-    '''(5) Summarize batch processing results'''
-    
+    '''(5) Summarize batch processing results'''    
     '''batch.write_mapfile()'''
+
+   batch.write_mapfile()
 
 
 if __name__ == "__main__":

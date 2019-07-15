@@ -37,7 +37,7 @@ fields = [{
     'condition':   lambda x: not x.startswith(
                         'http://health-equity.lib.umd.edu'
                         ),
-    'replace':      (r'((ISBN|ISSN)\s+[\dX-]+)\s*', '')
+    'replace':     (r'((ISBN|ISSN)\s+[\dX-]+)\s*', '')
     },{
     'source':      'identifier',
     'destination': 'binaries',

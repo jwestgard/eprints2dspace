@@ -18,21 +18,6 @@ def parse_source(path):
     return result
 
 
-def check_ext_link(original):
-    print(f'checking {original}')
-    try:
-        response = requests.head(original, timeout=10)
-        status = response.status_code
-        msg = requests.status_codes._codes[status][0]
-        new = ''
-        if status >= 300 and status < 400:
-            redirect = requests.get(original, timeout=10)
-            new = redirect.url
-        return (status, msg, original, new)
-    except:
-        return ("error", '', original, '')
-
-
 def transform(path):
 
     eprint = parse_source(path)
@@ -53,10 +38,10 @@ def transform(path):
         # check for well-formed input according to specified parameters
         if required:
             if src_value is '':
-                print('required field error')
+                logging.warning(f'required field {field["source"]} is blank')
         if unique:
             if len(src_value) > 1:
-                print('non-unique error', field['source'], src_value)
+                logging.warning(f'non-unique error {field["source"]} {src_value}')
 
         # filter the possible results if called for
         if condition:
