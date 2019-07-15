@@ -38,10 +38,14 @@ def transform(path):
         # check for well-formed input according to specified parameters
         if required:
             if src_value is '':
-                logging.warning(f'required field {field["source"]} is blank')
+                logging.warning(
+                    f'required field {field["source"]} is blank'
+                    )
         if unique:
             if len(src_value) > 1:
-                logging.warning(f'non-unique error {field["source"]} {src_value}')
+                logging.warning(
+                    f'non-unique error {field["source"]} {src_value}'
+                    )
 
         # filter the possible results if called for
         if condition:

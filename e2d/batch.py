@@ -36,7 +36,7 @@ class Batch():
         try:
             with open(self.id_file) as handle:
                 self.ids = [id.strip() for id in handle.readlines()]
-                self.contents = [Resource(id) for row in reader]
+                self.contents = [Resource(id) for id in self.ids]
                 if len(self.contents) == 0:
                     raise FileNotFoundError
         except FileNotFoundError:
