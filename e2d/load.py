@@ -62,5 +62,4 @@ class SafResource():
                 response = requests.get(url)
                 with open(local_path, 'wb') as handle:  
                     handle.write(response.content)
-            print('  • Download: {0} -> {1}'.format(url, local_path))
-
+            logging.info('  • Download: {0} -> {1}'.format(url, local_path))

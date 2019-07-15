@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+from importlib import import_module
 import logging
 import os
 import requests
@@ -45,6 +46,8 @@ def main():
             res.id, batch.local_cache, batch.source.query_pattern
             )
         
+        print(f'Creating item {res.id}', end='\r', file=sys.stdout)
+        
         if not res.extracted:
             if eprint.is_cached():
                 logging.info('Found in cache')
@@ -77,14 +80,7 @@ def main():
                 logging.error(f'Could not transform metadata for {eprint.id}')
                 continue
 
-            '''(4) Check and Update External Links'''
-            '''links = transformed_metadata['dc.description.uri']
-            for uri in links:
-                res.status, msg, res.orig_uri, res.new_uri = check_ext_link(uri)
-                link_file.write(','.join([str(res.status), res.orig_uri, 
-                                          res.new_uri]) + '\n')'''
-            
-        '''(5) Write SAF'''
+        '''(4) Write SAF'''
 
         if not res.loaded:
             try:
@@ -100,7 +96,18 @@ def main():
                 res.not_loaded_reason = 'could not create SAF'
                 continue
 
-    '''(5) Summarize batch processing results'''    
+    '''(5) Do any specified extra actions'''
+    print('\nBatch complete!', file=sys.stdout)
+    print('Applying extra actions', file=sys.stdout)
+    for n, action in enumerate(batch.extra, 1):
+        modpath = action['module']
+        params = [os.path.join('e2d/extra', p) for p in action['parameters']]
+        print(f'  {n}. Calling {modpath.rstrip(".")} with {params}')
+        module = import_module(modpath, package='e2d.extra')
+        module.main(*params)
+
+    '''(5) Summarize batch processing results''' 
+    
     batch.write_mapfile()
 
 

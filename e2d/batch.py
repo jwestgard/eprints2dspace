@@ -27,7 +27,9 @@ class Batch():
         # Parse config file and configure batch
         try:
             with open(self.configfile) as handle:
-                self.__dict__.update(**yaml.safe_load(handle))
+                config = yaml.safe_load(handle)
+                self.__dict__.update(**config['required'])
+                self.extra = [e for e in config['extra'].values()]
         except FileNotFoundError:
             print('cannot open configfile')
             sys.exit(1)

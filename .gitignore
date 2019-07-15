@@ -107,8 +107,10 @@ venv.bak/
 .DS_Store
 
 data/*
-!data/export/.gitignore
-!data/saf/.gitignore
-
+!data/.gitignore
+data/export/*
+!logs/export/.gitignore
+data/saf/*
+!logs/saf/.gitignore
 logs/*
 !logs/.gitignore
