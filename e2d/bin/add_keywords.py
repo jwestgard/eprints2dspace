@@ -4,7 +4,9 @@ import csv
 from lxml import etree as etree
 import os
 import sys
-from e2d.load import DublinCoreXML
+
+sys.path.append(os.path.join(sys.path[0], '..'))
+from load import DublinCoreXML
 
 
 def create_lookup(path):
@@ -27,7 +29,8 @@ def main(root, kwfile):
     for obj in os.listdir(root):
         try:
             print(f'\nOpening dc file for {obj}:')
-            dc = DublinCoreXML.from_existing(os.path.join(root, obj))
+            dcpath = os.path.join(root, obj, 'dublin_core.xml')
+            dc = DublinCoreXML.from_existing(dcpath)
             existing = dc.all_subjects()
             additional = lookup.get(obj, None)
             if not additional:
