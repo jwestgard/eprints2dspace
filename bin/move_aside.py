@@ -7,6 +7,8 @@ import shutil
 import sys
 
 def main(origdir, destdir, idfile):
+    if not os.path.exists(destdir):
+        os.mkdir(destdir)
     with open(idfile) as handle:
         for id in handle.readlines():
             try:
