@@ -98,16 +98,6 @@ def main():
 
     print('\nBatch complete!', file=sys.stdout)
 
-    '''(5) Do any specified extra actions'''
-    '''print('Applying extra actions', file=sys.stdout)
-    for n, action in enumerate(batch.extra, 1):
-        modpath = action['module']
-        params = [p for p in action['parameters']]
-        print(f'  {n}. Calling {modpath.rstrip(".")} with {params}', 
-                file=sys.stdout)
-        module = import_module(modpath, package='e2d.extra')
-        module.main(*params)'''
-
     '''(5) Summarize batch processing results''' 
     
     batch.write_mapfile()

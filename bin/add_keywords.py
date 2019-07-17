@@ -4,27 +4,7 @@ import csv
 from lxml import etree as etree
 import os
 import sys
-
-class DublinCoreXML():
-
-    def __init__(self, path):
-        self.file = os.path.join(path, 'dublin_core.xml')
-        self.tree = etree.parse(self.file, etree.XMLParser(remove_blank_text=True))
-        self.root = self.tree.getroot()
-
-    def add_subject(self, keyword):
-        child = etree.Element("dcvalue", element="subject")
-        child.text = keyword
-        self.root.append(child)
-
-    def all_subjects(self):
-        subjects = self.root.findall(".//dcvalue[@element='subject']")
-        return [subject.text for subject in subjects]
-
-    def write(self):
-        with open(self.file, 'wb') as handle:
-            handle.write(etree.tostring(self.tree, xml_declaration=True,
-                                        encoding="UTF-8", pretty_print=True))
+from e2d.load import DublinCoreXML
 
 
 def create_lookup(path):
@@ -47,7 +27,7 @@ def main(root, kwfile):
     for obj in os.listdir(root):
         try:
             print(f'\nOpening dc file for {obj}:')
-            dc = DublinCoreXML(os.path.join(root, obj))
+            dc = DublinCoreXML.from_existing(os.path.join(root, obj))
             existing = dc.all_subjects()
             additional = lookup.get(obj, None)
             if not additional:

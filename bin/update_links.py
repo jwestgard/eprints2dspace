@@ -1,30 +1,18 @@
 #!/usr/bin/env python3
 
-from lxml import etree as etree
 import os
 import requests
 import sys
+from e2d import load
 
-ROOT  = sys.argv[1]
-XPATH = '/dublin_core/dcvalue[@element="description" and @qualifier="uri"]'
+def main(root):
 
-class DublinCoreXML():
-    def __init__(self, path):
-        self.file = os.path.join(path, 'dublin_core.xml')
-        self.tree = etree.parse(self.file)
-        self.exlinks = self.tree.xpath(XPATH)
+    '''Check external links and update'''
 
-    def write(self):
-        with open(self.file, 'wb') as handle:
-            handle.write(
-                etree.tostring(self.tree, xml_declaration=True, encoding="UTF-8")
-                )
-
-def main():
-    for d in os.listdir(ROOT):
+    for d in os.listdir(root):
         if not d.startswith('.'):
             print(f'### {d} ###')
-            dc = DublinCoreXML(os.path.join(ROOT, d))
+            dc = load.DublinCoreXML(os.path.join(ROOT, d))
             print('  => checking links')
             for node in self.exlinks:
                 link = node.text
@@ -36,8 +24,11 @@ def main():
                     print(f'  => {node.text} ... ')
                 except:
                     print('  => error response')
-            dc.write()
             print('  => writing XML')
+            dc.write()
+
+
 
 if __name__ == '__main__':
-    main()
+    '''Supply root directory of the SAF package to be updated as an argument'''
+    main(sys.argv[1])

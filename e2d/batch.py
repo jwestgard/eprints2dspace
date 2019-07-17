@@ -28,8 +28,7 @@ class Batch():
         try:
             with open(self.configfile) as handle:
                 config = yaml.safe_load(handle)
-                self.__dict__.update(**config['required'])
-                self.extra = [e for e in config['extra'].values()]
+                self.__dict__.update(**config)
         except FileNotFoundError:
             print('cannot open configfile')
             sys.exit(1)
