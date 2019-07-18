@@ -27,7 +27,8 @@ class DublinCoreXML():
 
     @classmethod
     def from_existing(cls, path):
-        tree = etree.parse(path, etree.XMLParser(remove_blank_text=True))
+        dcfile = os.path.join(path, 'dublin_core.xml')
+        tree = etree.parse(dcfile, etree.XMLParser(remove_blank_text=True))
         return cls(path, tree)
 
     def __init__(self, path, tree):
@@ -73,7 +74,6 @@ class SafResource():
         self.dir        = f'item_{int(id):0{package.max_width}d}'
         self.path       = os.path.join(package.root, self.dir)
         self.cont_file  = os.path.join(self.path, 'contents')
-        self.dc_file    = DublinCoreXML(self.path)
         self.binaries   = metadata.pop('binaries')
         self.metadata   = metadata
         os.makedirs(self.path, exist_ok=True)

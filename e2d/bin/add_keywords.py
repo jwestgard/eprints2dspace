@@ -29,8 +29,7 @@ def main(root, kwfile):
     for obj in os.listdir(root):
         try:
             print(f'\nOpening dc file for {obj}:')
-            dcpath = os.path.join(root, obj, 'dublin_core.xml')
-            dc = DublinCoreXML.from_existing(dcpath)
+            dc = DublinCoreXML.from_existing(os.path.join(root, obj))
             existing = dc.all_subjects()
             additional = lookup.get(obj, None)
             if not additional:
