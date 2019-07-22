@@ -1,8 +1,8 @@
 host_name:   'http://health-equity.lib.umd.edu'
 query_path:  'cgi/export/{0}/DC/minorityhealth-archive-{0}.txt'
-id_range:    '1-4300'
-id_file:     'data/ids.txt'
+id_range:    '1-4500'
+id_file:     '/Users/westgard/Desktop/ids.txt'
 local_cache: 'data/eprints'
-saf_dir:     'data/saf'
+saf_dir:     'Users/westgard/Desktop/saf'
 log_dir:     'logs'
 

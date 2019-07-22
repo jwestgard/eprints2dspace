@@ -46,8 +46,8 @@ class Batch():
             last   = int(limits[1]) if len(limits) > 1 else first
             self.contents = [Resource(id) for id in range(first, last + 1)]
 
-        last_item = self.contents[-1]
-        self.max_width = len(str(last_item.id))
+        last_item        = self.contents[-1]
+        self.max_width   = len(str(last_item.id))
         self.source      = EprintsServer(self.host_name, self.query_path)
         self.destination = SafPackage(self.saf_dir, self.max_width)
         if not os.path.exists(self.local_cache):
