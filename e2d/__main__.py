@@ -46,9 +46,9 @@ def main():
             res.id, batch.local_cache, batch.source.query_pattern
             )
         
-        print(f'Creating item {res.id}', end='\r', file=sys.stdout)
+        print(f'Creating item {res.id}', file=sys.stdout)
         
-        if not res.extracted:
+        '''if not res.extracted:
             if eprint.is_cached():
                 logging.info('Found in cache')
                 res.extracted = True
@@ -64,11 +64,11 @@ def main():
                         )
                     res.extracted = False
                     res.not_ext_reason = status
-                    continue
+                    continue'''
 
         '''(3) Transform metadata'''
 
-        if not res.transformed:
+        '''if not res.transformed:
             try:
                 transformed_metadata = transform(eprint.local_path)
                 res.transformed = True
@@ -78,11 +78,11 @@ def main():
                 res.transformed = False
                 res.not_trans_reason = 'transformation error'
                 logging.error(f'Could not transform metadata for {eprint.id}')
-                continue
+                continue'''
 
         '''(4) Write SAF'''
 
-        if not res.loaded:
+        '''if not res.loaded:
             try:
                 sr = SafResource(
                     eprint.id, transformed_metadata, batch.destination
@@ -94,13 +94,13 @@ def main():
             except:
                 res.loaded = False
                 res.not_loaded_reason = 'could not create SAF'
-                continue
+                continue'''
 
     print('\nBatch complete!', file=sys.stdout)
 
     '''(5) Summarize batch processing results''' 
     
-    batch.write_mapfile()
+    batch.mapfile.write(batch.contents)
 
 
 if __name__ == "__main__":

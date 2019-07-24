@@ -19,12 +19,10 @@ class Batch():
     '''Class for iterating over a set of resources to be extracted'''
 
     def __init__(self, configfile, mapfile):
-        self.configfile  = configfile
-        self.mapfile     = mapfile
-        self.contents    = []
         self.cursor      = 0
 
         # Parse config file and configure batch
+        self.configfile  = configfile
         try:
             with open(self.configfile) as handle:
                 config = yaml.safe_load(handle)
@@ -33,42 +31,16 @@ class Batch():
             print('cannot open configfile')
             sys.exit(1)
 
-        # Read mapfile or setup batch contents
-        try:
-            with open(self.id_file) as handle:
-                self.ids = [id.strip() for id in handle.readlines()]
-                self.contents = [Resource(id) for id in self.ids]
-                if len(self.contents) == 0:
-                    raise FileNotFoundError
-        except FileNotFoundError:
-            limits = self.id_range.split('-')
-            first  = int(limits[0])
-            last   = int(limits[1]) if len(limits) > 1 else first
-            self.contents = [Resource(id) for id in range(first, last + 1)]
-
-        last_item        = self.contents[-1]
-        self.max_width   = len(str(last_item.id))
+        self.mapfile     = Mapfile(mapfile, self.id_range)
+        self.contents    = self.mapfile.read()
+        self.ids         = [item.id for item in self.contents]
+        self.max_width   = len(str(self.contents[-1].id))
         self.source      = EprintsServer(self.host_name, self.query_path)
         self.destination = SafPackage(self.saf_dir, self.max_width)
         if not os.path.exists(self.local_cache):
             os.makedirs(self.local_cache)
         if not os.path.exists(self.saf_dir):
             os.makedirs(self.saf_dir)
-
-    def write_mapfile(self):
-        fieldnames = ['id', 'extracted', 'not_ext_reason', 
-                      'transformed', 'not_trans_reason',
-                      'link_check', 'orig_uri', 'new_uri',
-                      'loaded', 'not_loaded_reason'
-                      ]
-        handle = open(self.mapfile, 'w')
-        writer = csv.DictWriter(handle, 
-                                fieldnames=fieldnames,
-                                extrasaction='ignore'
-                                )
-        writer.writeheader()
-        for resource in self.contents:
-            writer.writerow(resource.__dict__)
 
     def __iter__(self):
         return self
@@ -77,29 +49,58 @@ class Batch():
         try:
             current = self.contents[cursor] 
             self.cursor += 1
-            return current
+            return Resource(current)
         except IndexError:
             raise StopIteration()
 
 
+class Mapfile():
+
+    def __init__(self, path, id_range):
+        self.path = path
+        self.id_range = id_range
+        
+    def read(self):
+        try:
+            with open(self.path) as handle:
+                print("Mapfile exists...reading...", file=sys.stdout)
+                reader = csv.DictReader(handle)
+                self.data = [dict(row) for row in reader]
+                if len(self.data) == 0:
+                    raise FileNotFoundError
+                return self.data
+        except FileNotFoundError:
+            print("Mapfile does not exist or is empty...pulling ids from config...",
+                  file=sys.stdout)
+            limits = self.id_range.split('-')
+            first  = int(limits[0])
+            last   = int(limits[1]) if len(limits) > 1 else first
+            return [Resource(id=id) for id in range(first, last + 1)]
+
+    def write(self, data):
+        fieldnames = ['id', 'action', 'special', 
+                      'binaries', 'link', 'response', 
+                      'newlink']
+        rows = sorted(data, key=lambda row: row.id)
+        with open(self.path, 'w') as handle:
+            writer = csv.DictWriter(handle, 
+                                    fieldnames=fieldnames, 
+                                    extrasaction='ignore')
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row.__dict__)
+
+
 class Resource():
     '''Class that tracks item's progress in ETL process'''
-    def __init__(self, id, extracted=False, not_ext_reason=None, 
-                 transformed=False, not_trans_reason=None, 
-                 link_check=False, status=None, orig_uri=None, new_uri=None,
-                 loaded=False, not_loaded_reason=None
-                 ):
-        self.id                 = int(id)
-        self.extracted          = bool(extracted == 'True')
-        self.not_ext_reason     = not_ext_reason
-        self.transformed        = bool(transformed == 'True')
-        self.not_trans_reason   = not_trans_reason
-        self.link_check         = bool(link_check == 'True')
-        self.status             = status
-        self.orig_uri           = orig_uri
-        self.new_uri            = new_uri
-        self.loaded             = bool(loaded == 'True')
-        self.not_loaded_reason  = not_loaded_reason
+    def __init__(self, **kwargs):
+        self.id         = int(kwargs.get('id'))
+        self.action     = kwargs.get('action', 'include')
+        self.special    = kwargs.get('special', None)
+        self.binaries   = kwargs.get('binaries', None)
+        self.link       = kwargs.get('link', None)
+        self.response   = kwargs.get('response', None)
+        self.newlink    = kwargs.get('newlink', None)
 
 
 def print_header():
