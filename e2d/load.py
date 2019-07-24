@@ -90,10 +90,11 @@ class SafResource():
 
     def fetch_binaries(self):
         '''Download attached binaries for inclusion in import package'''
+        print(f'\n*** {self.dir} ***')
         for url in self.binaries:
             local_path = os.path.join(self.path, os.path.basename(url))
             if not os.path.isfile(local_path):
                 response = requests.get(url)
                 with open(local_path, 'wb') as handle:  
                     handle.write(response.content)
-            logging.info('  • Download: {0} -> {1}'.format(url, local_path))
+            print('  • Download: {0} -> {1}'.format(url, local_path))
