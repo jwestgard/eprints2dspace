@@ -1,3 +1,17 @@
+def update_redirect(url):
+    '''Follow 301/308 redirects and return new location, else return original'''
+    try:
+        response = requests.head(url, timeout=30)
+        status = response.status_code
+        print(f'  => {status} {url}')
+        if status in [301, 307]:
+            response = requests.get(response.url, timeout=30)
+            url = response.url
+            print(f'  => Found a redirect to {url}')
+        return url
+    except:
+        return url
+
 fields = [{
     'source':      'title',
     'destination': 'dc.title',

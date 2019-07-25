@@ -4,23 +4,8 @@ from .mapping import fields
 from .mapping import defaults
 
 
-def parse_source(path):
-    result = {}
-    with open(path, 'r') as handle:
-        lines = [line.strip() for line in handle.readlines()]
-    for line in lines:
-        if line is not '':
-            key, value = tuple(line.split(': ', 1))
-            if not key in result:
-                result[key] = [value.strip()]
-            else:
-                result[key].append(value.strip())
-    return result
+def transform(eprint):
 
-
-def transform(path):
-
-    eprint = parse_source(path)
     result = {}
 
     for field in fields:

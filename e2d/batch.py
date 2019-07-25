@@ -65,7 +65,7 @@ class Mapfile():
             with open(self.path) as handle:
                 print("Mapfile exists...reading...", file=sys.stdout)
                 reader = csv.DictReader(handle)
-                self.data = [dict(row) for row in reader]
+                self.data = [Resource(**row) for row in reader]
                 if len(self.data) == 0:
                     raise FileNotFoundError
                 return self.data
@@ -78,9 +78,8 @@ class Mapfile():
             return [Resource(id=id) for id in range(first, last + 1)]
 
     def write(self, data):
-        fieldnames = ['id', 'action', 'special', 
-                      'binaries', 'link', 'response', 
-                      'newlink']
+        fieldnames = ['id', 'action', 'special', 'dcfile', 'binaries', 
+                      'keywords', 'link', 'response', 'newlink', 'status']
         rows = sorted(data, key=lambda row: row.id)
         with open(self.path, 'w') as handle:
             writer = csv.DictWriter(handle, 
@@ -97,10 +96,12 @@ class Resource():
         self.id         = int(kwargs.get('id'))
         self.action     = kwargs.get('action', 'include')
         self.special    = kwargs.get('special', None)
+        self.dcfile     = kwargs.get('dcfile', None)
         self.binaries   = kwargs.get('binaries', None)
         self.link       = kwargs.get('link', None)
         self.response   = kwargs.get('response', None)
         self.newlink    = kwargs.get('newlink', None)
+        self.status     = kwargs.get('status', None)
 
 
 def print_header():

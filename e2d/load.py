@@ -1,6 +1,7 @@
 from lxml import etree
 import os
 import requests
+from urllib.parse import unquote as unquote
 
 
 class DublinCoreXML():
@@ -8,7 +9,7 @@ class DublinCoreXML():
     '''Class for the dc XML file in each SAF resource'''
     
     @classmethod
-    def from_metadata(cls, path, metadata):
+    def from_metadata(cls, dcfile, metadata):
         root = etree.Element("dublin_core")
         for key, value in metadata.items():
             schema, element = key.split('.', 1)
@@ -23,16 +24,15 @@ class DublinCoreXML():
                         child.set('qualifier', qualifier)
                     child.text = instance
                     root.append(child)
-        return cls(path, etree.ElementTree(root))
+        return cls(dcfile, etree.ElementTree(root))
 
     @classmethod
-    def from_existing(cls, path):
-        dcfile = os.path.join(path, 'dublin_core.xml')
+    def from_existing(cls, dcfile):
         tree = etree.parse(dcfile, etree.XMLParser(remove_blank_text=True))
         return cls(path, tree)
 
-    def __init__(self, path, tree):
-        self.file = os.path.join(path, 'dublin_core.xml')
+    def __init__(self, dcfile, tree):
+        self.file = dcfile
         self.tree = tree
         self.root = self.tree.getroot()
 
@@ -74,12 +74,13 @@ class SafResource():
         self.dir        = f'item_{int(id):0{package.max_width}d}'
         self.path       = os.path.join(package.root, self.dir)
         self.cont_file  = os.path.join(self.path, 'contents')
+        self.dc_file    = os.path.join(self.path, 'dublin_core.xml')
         self.binaries   = metadata.pop('binaries')
         self.metadata   = metadata
         os.makedirs(self.path, exist_ok=True)
 
     def write_dcxml_file(self):
-        DublinCoreXML.from_metadata(self.path, self.metadata).write()
+        DublinCoreXML.from_metadata(self.dc_file, self.metadata).write()
 
     def write_contents_file(self):
         '''Write constituent files, one per line, to the contents file'''
@@ -88,13 +89,3 @@ class SafResource():
                 [os.path.basename(f) for f in self.binaries])
                 )
 
-    def fetch_binaries(self):
-        '''Download attached binaries for inclusion in import package'''
-        print(f'\n*** {self.dir} ***')
-        for url in self.binaries:
-            local_path = os.path.join(self.path, os.path.basename(url))
-            if not os.path.isfile(local_path):
-                response = requests.get(url)
-                with open(local_path, 'wb') as handle:  
-                    handle.write(response.content)
-            print('  • Download: {0} -> {1}'.format(url, local_path))
