@@ -1,3 +1,4 @@
+import logging
 import re
 import requests
 from .mapping import fields

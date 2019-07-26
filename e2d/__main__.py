@@ -77,7 +77,6 @@ def main():
 
 
     for n, res in enumerate([i for i in batch.contents], 1):
-
         '''Skip excluded and complete resources'''
         if res.status == 'complete' or res.action == 'exclude':
             continue
@@ -102,17 +101,13 @@ def main():
                                                                 file=sys.stdout)
                 res.action = 'exclude'
                 continue
+
         eprint.fetch_binaries()
 
         '''(3) Transform metadata'''
-
-        try:
-            transformed_metadata = transform(eprint.parse_source())
-            title = transformed_metadata['dc.title'][0]
-            print(f'  -> Successfully transformed "{title}"')
-        except:
-            print(f'  -> Could not transform metadata for {eprint.id}')
-            continue
+        transformed_metadata = transform(eprint.parse_source())
+        title = transformed_metadata['dc.title'][0]
+        print(f'  -> Successfully transformed {title}')
 
         '''(4) Strip External Links from Flagged items'''
 
@@ -182,7 +177,9 @@ def main():
 
         '''(7) Move Aside Excluded Items'''
         if 'move_aside' in res.special:
-            shutil.move(sr.path, os.path.join(batch.cellar, sr.dir))
+            destination = os.path.join(batch.cellar, sr.dir)
+            print(f'  -> Moving resource to {destination}') 
+            shutil.move(sr.path, destination)
         
         '''(8) Set item status to complete'''
         res.status = 'complete'
