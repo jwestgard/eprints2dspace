@@ -19,10 +19,11 @@ class Batch():
     '''Class for iterating over a set of resources to be extracted'''
 
     def __init__(self, configfile, mapfile):
-        self.cursor      = 0
+        self.cursor = 0
 
         # Parse config file and configure batch
         self.configfile  = configfile
+        print(self.configfile)
         try:
             with open(self.configfile) as handle:
                 config = yaml.safe_load(handle)
@@ -36,6 +37,7 @@ class Batch():
         self.ids         = [item.id for item in self.contents]
         self.max_width   = len(str(self.contents[-1].id))
         self.source      = EprintsServer(self.host_name, self.query_path)
+        print(self.saf_dir, self.max_width)
         self.destination = SafPackage(self.saf_dir, self.max_width)
         if not os.path.exists(self.local_cache):
             os.makedirs(self.local_cache)

@@ -86,6 +86,6 @@ class SafResource():
         '''Write constituent files, one per line, to the contents file'''
         with open(self.cont_file, 'w') as handle:
             handle.write("\n".join(
-                [os.path.basename(f) for f in self.binaries])
+                [unquote(os.path.basename(f)) for f in self.binaries])
                 )
 
